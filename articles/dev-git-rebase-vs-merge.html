@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>git rebase と merge の違い | AI Teacher</title>
+  <meta name="description" content="rebaseは履歴を一本道に書き換える、mergeは分岐を残して合流させる。使い分けの基準と黄金律をまとめたメモ。">
+  <link rel="stylesheet" href="../styles/site.css">
+</head>
+<body>
+  <main class="article">
+    <nav class="breadcrumb"><a href="../index.html">← 一覧へ</a></nav>
+    <article>
+      <span class="category cat-dev">dev</span>
+      <h1>git rebase と merge の違い</h1>
+      <p class="meta">2026-06-13</p>
+
+      <p><strong>一言でいうと:</strong> <code>merge</code> は分岐を残したまま合流させる（履歴が二股に見える）。<code>rebase</code> は自分のコミットを相手の先端に付け替えて履歴を一本道にする（書き換え）。</p>
+
+      <h2>イメージ</h2>
+      <pre><code>merge:  A---B---C  (main)
+             \       \
+              D---E---M  (feature をマージ。M がマージコミット)
+
+rebase: A---B---C---D'---E'  (D, E を C の上に付け替え。一本道)</code></pre>
+
+      <h2>違いの要点</h2>
+      <table>
+        <tr><th></th><th>merge</th><th>rebase</th></tr>
+        <tr><td>履歴</td><td>分岐が残る</td><td>一本道に書き換わる</td></tr>
+        <tr><td>コミットID</td><td>変わらない</td><td>付け替えで変わる（別物になる）</td></tr>
+        <tr><td>マージコミット</td><td>増える</td><td>増えない</td></tr>
+        <tr><td>コンフリクト</td><td>1回まとめて解決</td><td>コミット単位で順次解決</td></tr>
+        <tr><td>向いている場面</td><td>共有ブランチ、経緯を残したい</td><td>手元のブランチを整える、PR前に最新に追従</td></tr>
+      </table>
+
+      <h2>黄金律</h2>
+      <blockquote>すでにpushして他人が見ている（共有された）コミットはrebaseしない。</blockquote>
+      <p>rebaseはコミットIDを書き換えるため、共有済みの履歴を書き換えると他人のローカルと食い違い、強制pushと巻き戻しの地獄になる。書き換えていいのは「まだ自分しか持っていないコミット」だけ。</p>
+
+      <h2>よく使うコマンド</h2>
+      <pre><code># feature を main の最新に追従させる（PR前の定番）
+git checkout feature
+git rebase main
+
+# 途中で詰まったら
+git rebase --abort        # 中止して元に戻す
+git rebase --continue     # コンフリクト解決後に続行
+
+# merge する場合
+git checkout main
+git merge feature</code></pre>
+
+      <h2>結局どっち</h2>
+      <ul>
+        <li><strong>PRを出す前に自分のブランチをmainの最新に追従させる</strong> → rebase が綺麗。</li>
+        <li><strong>mainに取り込む / 共有ブランチ同士</strong> → merge が安全（経緯も残る）。</li>
+        <li>チーム方針があるならそれに従う。履歴を一本道にしたいチームは「rebase運用 + squash merge」が多い。</li>
+      </ul>
+
+      <h2>参考</h2>
+      <ul>
+        <li><a href="https://git-scm.com/book/ja/v2/Git-のブランチ機能-リベース">Pro Git — リベース（日本語）</a></li>
+      </ul>
+    </article>
+    <footer class="site-footer">
+      <a href="../index.html">AI Teacher</a> — メモる速度で記事化する
+    </footer>
+  </main>
+</body>
+</html>
