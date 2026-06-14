@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Wi-Fi はどういう原理で使えるのか | AI Teacher</title>
+  <meta name="description" content="Wi-Fi はデータを電波（電磁波）に乗せて飛ばす無線通信。電波・周波数・チャンネル・変調の仕組みと、繋がる流れをかみ砕いたメモ。">
+  <link rel="stylesheet" href="../styles/site.css">
+</head>
+<body>
+  <main class="article">
+    <nav class="breadcrumb"><a href="../index.html">← 一覧へ</a></nav>
+    <article>
+      <span class="category cat-dev">dev</span>
+      <h1>Wi-Fi はどういう原理で使えるのか</h1>
+      <p class="meta">2026-06-14</p>
+
+      <p><strong>一言でいうと:</strong> Wi-Fi は、データ（0と1）を<strong>電波（電磁波）の変化</strong>に変換して空中に飛ばし、受け取った側が元のデータに戻す無線通信。ケーブルの代わりに「電波」を線にしているだけ。</p>
+
+      <h2>1. データは電波に「乗せて」運ばれる</h2>
+      <p>パソコンやスマホが扱うのは 0 と 1 のデジタルデータ。これをそのまま飛ばすことはできないので、ルーター（アクセスポイント）の中の無線チップが、データに合わせて電波の波の形を細かく変化させる。これを<strong>変調（modulation）</strong>と呼ぶ。</p>
+      <ul>
+        <li>送信側: データ → 電波の波形を変化させて空中へ放射</li>
+        <li>受信側: 電波の波形の変化を読み取って → データに復元</li>
+      </ul>
+      <p>波の「振幅」や「位相」を組み合わせて、1回の波で複数ビットを表現する（QAM という方式）。これにより1秒間に大量のデータを運べる。</p>
+
+      <h2>2. 周波数帯（2.4GHz と 5GHz / 6GHz）</h2>
+      <p>電波には周波数があり、Wi-Fi は主に3つの帯域を使う。家庭でよく聞く「2.4GHz / 5GHz」はこれ。</p>
+      <table>
+        <tr><th>帯域</th><th>特徴</th></tr>
+        <tr><td>2.4GHz</td><td>遠くまで届く・壁に強い。ただし電子レンジやBluetoothと干渉しやすく遅くなりがち</td></tr>
+        <tr><td>5GHz</td><td>速い・干渉が少ない。ただし障害物に弱く距離が短い</td></tr>
+        <tr><td>6GHz (Wi-Fi 6E/7)</td><td>さらに空いていて高速。対応機器が必要</td></tr>
+      </table>
+      <p>「家の奥だと2.4GHz、ルーターの近くなら5GHz」のように使い分けると安定しやすい。</p>
+
+      <h2>3. チャンネルと混信</h2>
+      <p>各帯域はさらに「チャンネル」という細かい区画に分かれている。近所のWi-Fiと同じチャンネルが重なると<strong>混信して遅くなる</strong>。最近のルーターは空いているチャンネルを自動で選ぶが、遅いときは手動でチャンネルを変えると改善することがある。</p>
+
+      <h2>4. スマホがWi-Fiに「繋がる」までの流れ</h2>
+      <ol>
+        <li><strong>発見</strong>: アクセスポイントは自分の名前（SSID）を電波で定期的に発信している。スマホはそれを拾って一覧表示する。</li>
+        <li><strong>認証</strong>: パスワード（事前共有鍵）で本人確認。正しければ接続を許可される。</li>
+        <li><strong>暗号化</strong>: 以降の通信は WPA2 / WPA3 で暗号化され、電波を傍受されても中身は読めない。</li>
+        <li><strong>IPアドレス取得</strong>: ルーターから DHCP で IP アドレスを割り当てられ、ようやくネットへ通信できる状態になる。</li>
+      </ol>
+
+      <h2>5. Wi-Fi はインターネットそのものではない</h2>
+      <blockquote>Wi-Fi は「家の中の無線の足回り」にすぎない。</blockquote>
+      <p>よくある誤解だが、Wi-Fi 自体はインターネットではない。スマホ ↔ ルーター間を無線でつなぐ技術であって、ルーターから先（インターネット）は光回線などの有線でプロバイダに繋がっている。だから「Wi-Fiマークは立っているのにネットが見れない」が起きる＝無線区間はOKだが、その先の回線側で問題がある状態。</p>
+
+      <h2>まとめ</h2>
+      <ul>
+        <li>Wi-Fi = データを電波に乗せて飛ばす無線通信。ケーブルの代わり。</li>
+        <li>周波数帯（2.4/5/6GHz）で「届く距離」と「速さ」のトレードオフがある。</li>
+        <li>繋がる流れは「発見 → 認証 → 暗号化 → IP取得」。</li>
+        <li>Wi-Fiはルーターまで。その先のインターネットは別物。</li>
+      </ul>
+
+      <h2>参考</h2>
+      <ul>
+        <li><a href="https://www.wi-fi.org/">Wi-Fi Alliance（公式・英語）</a></li>
+      </ul>
+    </article>
+    <footer class="site-footer">
+      <a href="../index.html">AI Teacher</a> — メモる速度で記事化する
+    </footer>
+  </main>
+</body>
+</html>
