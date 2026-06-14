@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Postgres で index を貼る基準 | AI Teacher</title>
+  <meta name="description" content="index は WHERE / JOIN / ORDER BY で頻繁に使うカラムに貼る。貼りすぎは書き込みを遅くする。選定基準とアンチパターンのメモ。">
+  <link rel="stylesheet" href="../styles/site.css">
+</head>
+<body>
+  <main class="article">
+    <nav class="breadcrumb"><a href="../index.html">← 一覧へ</a></nav>
+    <article>
+      <span class="category cat-dev">dev</span>
+      <h1>Postgres で index を貼る基準</h1>
+      <p class="meta">2026-06-14</p>
+
+      <p><strong>一言でいうと:</strong> <code>WHERE</code> / <code>JOIN</code> / <code>ORDER BY</code> で頻繁に使い、かつ<strong>選択性が高い（値がバラけている）</strong>カラムに貼る。読み取りは速くなるが、書き込み（INSERT/UPDATE/DELETE）は index の数だけ遅くなるので貼りすぎ厳禁。</p>
+
+      <h2>貼るべきカラムの判断軸</h2>
+      <table>
+        <tr><th>観点</th><th>貼る価値</th></tr>
+        <tr><td><code>WHERE</code> の絞り込み条件に頻出</td><td>高い</td></tr>
+        <tr><td><code>JOIN</code> のキー（特に外部キー）</td><td>高い。Postgresは外部キーに自動でindexを貼らないので要手動</td></tr>
+        <tr><td><code>ORDER BY</code> / <code>GROUP BY</code> の対象</td><td>中〜高。ソート処理を省ける</td></tr>
+        <tr><td>選択性が高い（例: メールアドレス、ID）</td><td>高い</td></tr>
+        <tr><td>選択性が低い（例: 真偽値、性別）</td><td>低い。全体の数割がヒットするならindexよりseq scanが速い</td></tr>
+      </table>
+
+      <h2>選択性（カーディナリティ）が肝</h2>
+      <p>「そのカラムで絞ったとき、どれだけ行が減るか」が index の効きを決める。<code>boolean</code> のように2値しかないカラムは、絞っても半分しか減らず、プランナは index を無視して全表スキャンを選ぶことが多い。<strong>「ほぼ一意」に近いほど index は効く。</strong></p>
+
+      <h2>複合インデックスの順番ルール</h2>
+      <p>複数カラムをまとめて貼るときは順番が重要。<strong>等価比較（=）するカラムを左に、範囲比較（&gt;, &lt;, BETWEEN）やソート対象を右に。</strong></p>
+      <pre><code>-- status で絞って created_at でソートするクエリなら
+CREATE INDEX idx_orders_status_created
+  ON orders (status, created_at);
+
+-- これは (status = ? ORDER BY created_at) に効く
+-- 逆順 (created_at, status) だと status の絞り込みに使いづらい</code></pre>
+      <p>左端のカラムから連続して使われる（left-most prefix）ぶんしか効かない点に注意。<code>(a, b, c)</code> の index は <code>a</code>、<code>a,b</code>、<code>a,b,c</code> には効くが、<code>b</code> 単独・<code>c</code> 単独には効かない。</p>
+
+      <h2>貼りすぎるとどうなるか</h2>
+      <ul>
+        <li><strong>書き込みが遅くなる</strong> — INSERT/UPDATE/DELETE のたびに全 index を更新する。index 10個あれば書き込みコストもそれだけ増える。</li>
+        <li><strong>ディスクを食う</strong> — index は実体を持つ。巨大テーブルでは index がテーブル本体より大きくなることも。</li>
+        <li><strong>使われない index が残る</strong> — 効くと思って貼ったが実際クエリが使っていない、というケース。</li>
+      </ul>
+
+      <h2>効いているか確認する</h2>
+      <pre><code>-- 実行計画を見る。Index Scan になっているか、Seq Scan か
+EXPLAIN ANALYZE
+SELECT * FROM orders WHERE status = 'paid' ORDER BY created_at DESC;
+
+-- 使われていない index を洗い出す（idx_scan = 0 が候補）
+SELECT relname, indexrelname, idx_scan
+FROM pg_stat_user_indexes
+ORDER BY idx_scan ASC;</code></pre>
+
+      <h2>実務での進め方</h2>
+      <ol>
+        <li>まず index なしで作り、遅いクエリを <code>EXPLAIN ANALYZE</code> で特定する。</li>
+        <li>そのクエリの <code>WHERE</code> / <code>JOIN</code> / <code>ORDER BY</code> を見て候補を決める。</li>
+        <li>貼ったら本当に <code>Index Scan</code> に変わったか確認する。</li>
+        <li>定期的に <code>pg_stat_user_indexes</code> で「使われていない index」を掃除する。</li>
+      </ol>
+      <blockquote>推測で貼らない。遅いクエリを計測してから貼る。これが鉄則。</blockquote>
+
+      <h2>参考</h2>
+      <ul>
+        <li><a href="https://www.postgresql.org/docs/current/indexes.html">PostgreSQL Documentation — Indexes</a></li>
+      </ul>
+    </article>
+    <footer class="site-footer">
+      <a href="../index.html">AI Teacher</a> — メモる速度で記事化する
+    </footer>
+  </main>
+</body>
+</html>
