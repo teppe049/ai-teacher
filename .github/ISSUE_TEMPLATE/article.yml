@@ -1,0 +1,36 @@
+name: 📝 記事リクエスト
+description: 気になったことを投げると、AIが記事化して公開します
+title: "[記事] "
+labels: ["article"]
+body:
+  - type: textarea
+    id: topic
+    attributes:
+      label: お題・質問
+      description: 記事にしたいことを書く。1行でもOK。音声入力で喋ってもOK。
+      placeholder: 例) Postgres で index を貼る基準は？
+    validations:
+      required: true
+  - type: dropdown
+    id: category
+    attributes:
+      label: カテゴリ（任意）
+      description: 迷ったら空欄でOK。AIが判断します。
+      options:
+        - "（おまかせ）"
+        - dev
+        - ai
+        - infra
+        - game
+        - life
+        - other
+    validations:
+      required: false
+  - type: textarea
+    id: notes
+    attributes:
+      label: メモ・補足（任意）
+      description: 自分が知ってる前提、深掘りしてほしい観点などあれば。
+      placeholder: 例) 実務で1000万行のテーブルを想定して
+    validations:
+      required: false
